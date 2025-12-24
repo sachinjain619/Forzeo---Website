@@ -5,25 +5,35 @@ import {
   CheckCircle, 
   Menu, 
   X, 
-  Search, 
   Cpu, 
-  BarChart3, 
   Globe, 
   ChevronLeft,
   ChevronRight, 
   TrendingUp, 
-  FileText, 
-  AlertTriangle,
-  Target,
-  Zap,
-  Activity,
-  PieChart,
-  Quote
+  Zap, 
+  Activity, 
+  Quote, 
+  Users, 
+  Layers, 
+  MessageSquare, 
+  TrendingDown, 
+  LayoutDashboard, 
+  Settings, 
+  LogOut, 
+  Info,
+  ShieldCheck,
+  Loader2,
+  Lock,
+  Shield
 } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { Button } from './components/Button';
 import { Section } from './components/Section';
-import { NAV_LINKS, STATISTICS, CORE_FEATURES, PRICING_TIERS, TRUSTED_BRANDS } from './constants';
+import { WhatsAppButton } from './components/WhatsAppButton';
+import { NAV_LINKS, CORE_FEATURES, PRICING_TIERS, TRUSTED_BRANDS } from './constants';
+
+const CALENDAR_URL = "https://calendar.app.google/FuVTPRuZEUbN9RPj8";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwv4qJ1FqzvkF_ih4vy3UEkrp4wePk5-0IoWVla-AicyiYJPA8r_GBIpuXLa7Zr8Q3CtA/exec";
 
 const TESTIMONIALS = [
   {
@@ -52,10 +62,623 @@ const TESTIMONIALS = [
   }
 ];
 
+// --- Verification Gateway Component ---
+const VerificationGateway: React.FC<{ onVerified: () => void }> = ({ onVerified }) => {
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+
+  const handleVerify = () => {
+    setIsVerifying(true);
+    // Simulate a futuristic scan
+    setTimeout(() => {
+      setIsComplete(true);
+      setTimeout(onVerified, 800);
+    }, 1500);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-brand-dark overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[600px] bg-brand-indigo/10 blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="relative z-10 glass-panel p-10 md:p-14 rounded-[2.5rem] border border-white/10 flex flex-col items-center gap-8 max-w-md w-full mx-6 text-center shadow-2xl animate-fade-in-up">
+        <Logo className="scale-125 mb-4" />
+        
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-indigo/10 border border-brand-indigo/30 text-brand-cyan text-[10px] font-bold uppercase tracking-widest">
+            <Shield size={14} />
+            Secure Gateway
+          </div>
+         
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Verify you are human.
+          </p>
+        </div>
+
+        <button 
+          onClick={handleVerify}
+          disabled={isVerifying}
+          className={`relative group w-full p-6 rounded-2xl border transition-all duration-500 flex items-center justify-between overflow-hidden ${
+            isComplete 
+              ? 'bg-emerald-500/10 border-emerald-500/50' 
+              : 'bg-white/5 border-white/10 hover:border-brand-cyan/50 hover:bg-white/10'
+          }`}
+        >
+          {/* Progress bar background */}
+          {isVerifying && !isComplete && (
+            <div className="absolute bottom-0 left-0 h-1 bg-brand-cyan animate-progress" style={{ width: '100%' }} />
+          )}
+
+          <div className="flex items-center gap-4">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border-2 transition-all duration-500 ${
+              isComplete 
+                ? 'bg-emerald-500 border-emerald-500 scale-110' 
+                : 'border-white/20 group-hover:border-brand-cyan'
+            }`}>
+              {isComplete ? (
+                <CheckCircle size={20} className="text-white" />
+              ) : isVerifying ? (
+                <Loader2 size={16} className="text-brand-cyan animate-spin" />
+              ) : (
+                <div className="w-2 h-2 rounded-sm bg-white/20 group-hover:bg-brand-cyan transition-colors" />
+              )}
+            </div>
+            <span className={`text-sm font-bold uppercase tracking-widest transition-colors ${isComplete ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`}>
+              {isComplete ? 'Verified' : isVerifying ? 'Verifying...' : 'I am human'}
+            </span>
+          </div>
+          
+          <Lock size={18} className={`transition-opacity duration-300 ${isVerifying ? 'opacity-0' : 'opacity-20'}`} />
+        </button>
+
+        <div className="flex items-center gap-2 text-[9px] text-slate-500 font-bold uppercase tracking-widest opacity-40">
+          
+        forzeo.com needs to review the security of your connection before proceeding.
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes progress {
+          from { transform: scaleX(0); transform-origin: left; }
+          to { transform: scaleX(1); transform-origin: left; }
+        }
+        .animate-progress {
+          animation: progress 1.5s linear forwards;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// --- Rest of the Components ---
+
+const LeadFormModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    workEmail: '',
+    websiteUrl: '',
+    competitors: '',
+    primaryQuery: '',
+    targetRegion: 'US'
+  });
+
+  if (!isOpen) return null;
+
+  const handleNext = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStep(2);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const payload = {
+      name: formData.fullName,
+      email: formData.workEmail,
+      website: formData.websiteUrl,
+      competitors: formData.competitors,
+      query: formData.primaryQuery,
+      region: formData.targetRegion
+    };
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      setIsSuccess(true);
+    } catch (error) {
+      console.error('Submission error:', error);
+      setIsSuccess(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetAndClose = () => {
+    onClose();
+    setTimeout(() => {
+      setStep(1);
+      setIsSuccess(false);
+      setFormData({
+        fullName: '',
+        workEmail: '',
+        websiteUrl: '',
+        competitors: '',
+        primaryQuery: '',
+        targetRegion: 'US'
+      });
+    }, 300);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div 
+        className="absolute inset-0 bg-brand-dark/80 backdrop-blur-sm transition-opacity duration-300"
+        onClick={resetAndClose}
+      />
+      <div className="relative w-full max-w-lg glass-panel rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#0F172A] animate-fade-in-up">
+        <button 
+          onClick={resetAndClose}
+          className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+        >
+          <X size={20} />
+        </button>
+
+        {!isSuccess ? (
+          <div className="p-8 md:p-10">
+            <div className="flex gap-2 mb-8">
+              <div className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${step >= 1 ? 'bg-blue-500 shadow-[0_0_8px_#3b82f6]' : 'bg-white/10'}`} />
+              <div className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${step >= 2 ? 'bg-blue-500 shadow-[0_0_8px_#3b82f6]' : 'bg-white/10'}`} />
+            </div>
+
+            {step === 1 ? (
+              <form onSubmit={handleNext} className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-display font-bold text-white mb-2">See How AI Engines Rank Your Brand</h2>
+                  <p className="text-slate-400 text-sm">Get a free Generative Engine Optimization (GEO) audit for your brand.</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Full Name</label>
+                    <input 
+                      required
+                      type="text"
+                      placeholder="Jane Doe"
+                      className="w-full bg-[#1A2235]/60 border border-white/5 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                      value={formData.fullName}
+                      onChange={e => setFormData({...formData, fullName: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Work Email</label>
+                    <input 
+                      required
+                      type="email"
+                      placeholder="jane@brand.com"
+                      className="w-full bg-[#1A2235]/60 border border-white/5 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                      value={formData.workEmail}
+                      onChange={e => setFormData({...formData, workEmail: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Website URL</label>
+                    <input 
+                      required
+                      type="text"
+                      placeholder="https://brand.com"
+                      className="w-full bg-[#1A2235]/60 border border-blue-500/40 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all"
+                      value={formData.websiteUrl}
+                      onChange={e => setFormData({...formData, websiteUrl: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <Button 
+                  type="submit"
+                  className="w-full bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-4 rounded-xl border-none shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  Next: Customize My Audit →
+                </Button>
+                <p className="text-center text-[10px] text-slate-600 font-medium flex items-center justify-center gap-1.5 mt-2">
+                  <ShieldCheck size={12} className="opacity-60" />
+                  Privacy First: We never spam
+                </p>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-display font-bold text-white mb-2">Almost there!</h2>
+                  <p className="text-slate-400 text-sm">We need a few details to run the engine.</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Top 3 Competitors</label>
+                    <textarea 
+                      required
+                      placeholder="Who should we benchmark you against?"
+                      rows={2}
+                      className="w-full bg-[#1A2235]/60 border border-white/5 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none"
+                      value={formData.competitors}
+                      onChange={e => setFormData({...formData, competitors: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Primary Target Query</label>
+                    <input 
+                      required
+                      type="text"
+                      placeholder="e.g. 'Best enterprise SEO tools'"
+                      className="w-full bg-[#1A2235]/60 border border-white/5 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                      value={formData.primaryQuery}
+                      onChange={e => setFormData({...formData, primaryQuery: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Region</label>
+                    <select 
+                      className="w-full bg-[#1E293B] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+                      value={formData.targetRegion}
+                      onChange={e => setFormData({...formData, targetRegion: e.target.value})}
+                    >
+                      <option value="US">United States</option>
+                      <option value="India">India</option>
+                      <option value="Europe">Europe</option>
+                      <option value="Global">Global</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="px-6 rounded-xl border border-white/10 text-slate-400 hover:text-white transition-colors"
+                  >
+                    Back
+                  </button>
+                  <Button 
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-[#3B82F6] hover:bg-blue-600 text-white font-bold py-4 rounded-xl border-none shadow-lg shadow-blue-500/30 relative group overflow-hidden"
+                  >
+                    <span className="absolute inset-0 rounded-xl bg-violet-500/20 blur-md group-hover:bg-violet-500/40 transition-all opacity-0 group-hover:opacity-100" />
+                    {isSubmitting ? <Loader2 className="animate-spin mx-auto" /> : "Generate My Free Audit"}
+                  </Button>
+                </div>
+                <p className="text-center text-[10px] text-slate-600 font-medium flex items-center justify-center gap-1.5 mt-2">
+                  <ShieldCheck size={12} className="opacity-60" />
+                  Privacy First: We never spam
+                </p>
+              </form>
+            )}
+          </div>
+        ) : (
+          <div className="p-10 text-center space-y-8 animate-fade-in">
+            <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-500/10 border border-blue-500/20">
+               <Cpu className="text-blue-500 animate-pulse" size={32} />
+               <div className="absolute inset-0 rounded-full border-2 border-blue-500/50 border-t-transparent animate-spin" />
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-3xl font-display font-bold text-white">Analysis Started!</h2>
+              <p className="text-slate-400 leading-relaxed">We will email your audit shortly.</p>
+            </div>
+            <div className="pt-4">
+              <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden mb-8">
+                <div className="bg-gradient-to-r from-blue-500 to-violet-500 h-full w-[85%] animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+              </div>
+              <Button 
+                onClick={resetAndClose}
+                variant="outline"
+                className="w-full border-white/10 hover:border-blue-500/50 text-slate-300 rounded-xl"
+              >
+                Close Dashboard
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const DashboardMockup: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    setAnimate(false);
+    const timer = setTimeout(() => setAnimate(true), 100);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
+
+  const sidebarItems = [
+    { icon: LayoutDashboard, label: 'Dashboard' },
+    { icon: Cpu, label: 'Content Gen' },
+    { icon: Users, label: 'Competitors' },
+    { icon: Globe, label: 'Sources' },
+    { icon: MessageSquare, label: 'Prompts' },
+    { icon: Layers, label: 'Gap Analysis' },
+    { icon: Activity, label: 'LLM Traffic' },
+  ];
+
+  const renderDashboard = () => (
+    <div className="space-y-5 h-full flex flex-col overflow-y-auto pr-2 custom-scrollbar">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { label: 'SHARE OF VOICE (SOV)', val: '6.1%', trend: '+0.2%', trendUp: true },
+          { label: 'TOTAL MENTIONS', val: '58', trend: '-12%', trendUp: false },
+          { label: 'BRAND SENTIMENT', val: '65/100', trend: 'Neutral', trendUp: null },
+          { label: 'AVG RANK IN LISTS', val: '#6.2', trend: 'Dropping', trendUp: false },
+        ].map((card, i) => (
+          <div 
+            key={i} 
+            className="bg-[#121827] border border-white/5 rounded-xl p-4 transition-all duration-700 hover:border-white/10 overflow-hidden min-w-0"
+            style={{ transform: animate ? 'translateY(0)' : 'translateY(10px)', opacity: animate ? 1 : 0, transitionDelay: `${i * 100}ms` }}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-[7px] font-bold text-slate-500 tracking-wider uppercase truncate">{card.label}</span>
+              {card.trendUp !== null && (card.trendUp ? <TrendingUp size={10} className="text-emerald-400 shrink-0" /> : <TrendingDown size={10} className="text-rose-500 shrink-0" />)}
+            </div>
+            <div className="flex flex-wrap items-baseline gap-1.5 min-w-0">
+              <span className="text-lg font-display font-bold text-white whitespace-nowrap">{card.val}</span>
+              <span className={`text-[7px] px-1 py-0.5 rounded font-bold uppercase tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis ${
+                card.trendUp === true ? 'bg-emerald-500/10 text-emerald-400' : 
+                card.trendUp === false ? 'bg-rose-500/10 text-rose-500' : 'bg-slate-500/10 text-slate-400'
+              }`}>
+                {card.trend}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-[#121827] border border-white/5 rounded-xl p-5 flex flex-col h-[240px] overflow-hidden"
+          style={{ transform: animate ? 'translateY(0)' : 'translateY(10px)', opacity: animate ? 1 : 0, transitionDelay: '400ms' }}>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h3 className="text-[11px] font-bold text-white uppercase tracking-wider">Visibility Trends (SOV)</h3>
+              <p className="text-[9px] text-slate-500 mt-1 font-medium tracking-tight">Real-time performance across leading LLMs.</p>
+            </div>
+            <div className="flex gap-4">
+              {['Brand', 'Leader', 'Others'].map((l, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-brand-indigo' : i === 1 ? 'bg-brand-cyan' : 'bg-slate-700'}`} />
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">{l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex-1 relative">
+             <svg className="w-full h-full" preserveAspectRatio="none">
+                <path d="M0,80 C50,78 100,85 150,70 C200,60 250,78 300,65 C350,55 400,68 450,50" fill="none" stroke="#4F46E5" strokeWidth="2.5" className="animate-dash" style={{ strokeDasharray: 1000, strokeDashoffset: animate ? 0 : 1000 }} />
+                <path d="M0,40 C50,45 100,38 150,42 C200,48 250,40 300,45 C350,42 400,38 450,40" fill="none" stroke="#22D3EE" strokeWidth="1.5" strokeOpacity="0.4" />
+             </svg>
+          </div>
+        </div>
+        <div className="bg-[#121827] border border-white/5 rounded-xl p-5 flex flex-col items-center justify-center h-[240px] overflow-hidden"
+          style={{ transform: animate ? 'translateY(0)' : 'translateY(10px)', opacity: animate ? 1 : 0, transitionDelay: '500ms' }}>
+          <h3 className="text-[11px] font-bold text-white uppercase tracking-wider mb-8 text-center">Mentions by Category</h3>
+          <div className="relative w-32 h-32">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4F46E5" strokeWidth="5" strokeDasharray="60, 100" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#22D3EE" strokeWidth="5" strokeDasharray="25, 100" strokeDashoffset="-60" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1E293B" strokeWidth="5" strokeDasharray="15, 100" strokeDashoffset="-85" />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center flex-col">
+              <span className="text-base font-display font-bold text-white">1.2k</span>
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Total</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="bg-[#121827] border border-white/5 rounded-xl p-6 overflow-hidden"
+        style={{ transform: animate ? 'translateY(0)' : 'translateY(10px)', opacity: animate ? 1 : 0, transitionDelay: '600ms' }}>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[11px] font-bold text-white uppercase tracking-widest">Top 5 Performing Prompts</h3>
+          <a href="#" className="text-[9px] text-brand-indigo font-bold uppercase tracking-widest hover:text-brand-cyan transition-colors">View All Prompts →</a>
+        </div>
+        <div className="overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/5 text-[9px] text-slate-500 font-bold uppercase">
+                <th className="pb-3 font-bold tracking-widest">Prompt Query</th>
+                <th className="pb-3 font-bold tracking-widest">Model</th>
+                <th className="pb-3 font-bold tracking-widest text-right">SOV Impact</th>
+              </tr>
+            </thead>
+            <tbody className="text-[11px] text-slate-300">
+              {[
+                { q: 'How do I check if my brand is showing up on ChatGPT?', m: 'GPT-4o', i: 'High Visibility', iClass: 'text-emerald-400 bg-emerald-500/10' },
+                { q: 'What are best AI Brand visibility analytics tools?', m: 'Perplexity', i: 'High Visibility', iClass: 'text-emerald-400 bg-emerald-500/10' },
+                { q: 'How do I rank on Gemini and Perplexity?', m: 'Google AI', i: 'Med Visibility', iClass: 'text-amber-400 bg-amber-500/10' },
+                { q: 'Best enterprise GEO platforms 2025', m: 'Bing AI', i: 'High Visibility', iClass: 'text-emerald-400 bg-emerald-500/10' },
+                { q: 'AI citation impact on brand authority', m: 'Claude 3.5', i: 'Med Visibility', iClass: 'text-amber-400 bg-amber-500/10' },
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                  <td className="py-4 font-medium text-slate-200 group-hover:text-white transition-colors truncate max-w-[200px]">{row.q}</td>
+                  <td className="py-4">
+                    <span className="px-2 py-0.5 rounded border border-white/10 bg-white/5 text-[9px] font-bold text-slate-400 uppercase tracking-tight whitespace-nowrap">{row.m}</span>
+                  </td>
+                  <td className="py-4 text-right">
+                    <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-tighter whitespace-nowrap ${row.iClass}`}>{row.i}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCompetitors = () => (
+    <div className="space-y-4 h-full flex flex-col overflow-y-auto pr-2 custom-scrollbar">
+      <div className="grid lg:grid-cols-2 gap-4">
+        <div className="bg-[#121827] border border-white/5 rounded-xl p-5 overflow-hidden"
+          style={{ transform: animate ? 'translateY(0)' : 'translateY(10px)', opacity: animate ? 1 : 0 }}>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-bold text-white uppercase tracking-wider">Competitive SOV & Rank</h3>
+            <p className="text-[9px] text-slate-500 mt-1 font-medium">Tracking share of mind vs competitors.</p>
+          </div>
+          <div className="space-y-4">
+             {[
+               { label: 'Total Mentions', vals: [20, 85, 60] },
+               { label: 'Share of Voice %', vals: [6, 42, 28] },
+               { label: 'Avg Rank (Inverse)', vals: [15, 90, 75] }
+             ].map((row, idx) => (
+               <div key={idx} className="space-y-2">
+                 <div className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">{row.label}</div>
+                 <div className="space-y-1.5">
+                   <div className="h-2 bg-brand-indigo rounded-r shadow-[0_0_8px_rgba(79,70,229,0.3)] transition-all duration-1000" style={{ width: animate ? `${row.vals[0]}%` : '0%' }}></div>
+                   <div className="h-2 bg-slate-700 rounded-r transition-all duration-1000" style={{ width: animate ? `${row.vals[1]}%` : '0%' }}></div>
+                   <div className="h-2 bg-slate-800 rounded-r transition-all duration-1000" style={{ width: animate ? `${row.vals[2]}%` : '0%' }}></div>
+                 </div>
+               </div>
+             ))}
+          </div>
+        </div>
+        <div className="bg-[#121827] border border-white/5 rounded-xl p-5 overflow-hidden"
+          style={{ transform: animate ? 'translateY(0)' : 'translateY(10px)', opacity: animate ? 1 : 0, transitionDelay: '100ms' }}>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-bold text-white uppercase tracking-wider">Sentiment Breakdown</h3>
+            <p className="text-[9px] text-slate-500 mt-1 font-medium">Tone of voice across different engines.</p>
+          </div>
+          <div className="h-32 flex items-end justify-around px-8 gap-6">
+            {[
+              { l: 'Brand', n: 15, m: 65, p: 20 },
+              { l: 'Leader', n: 25, m: 45, p: 30 },
+              { l: 'Noise', n: 20, m: 50, p: 30 },
+            ].map((col, i) => (
+              <div key={i} className="w-8 h-full flex flex-col justify-end">
+                <div className="bg-rose-500/80 transition-all duration-1000" style={{ height: animate ? `${col.n}%` : '0%' }}></div>
+                <div className="bg-brand-indigo/80 transition-all duration-1000" style={{ height: animate ? `${col.m}%` : '0%' }}></div>
+                <div className="bg-emerald-500/80 transition-all duration-1000" style={{ height: animate ? `${col.p}%` : '0%' }}></div>
+                <span className="text-[9px] text-slate-500 mt-2 text-center font-bold tracking-tighter truncate uppercase">{col.l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="bg-[#121827] border border-white/5 rounded-xl p-5 flex-1 overflow-hidden"
+        style={{ transform: animate ? 'translateY(0)' : 'translateY(10px)', opacity: animate ? 1 : 0, transitionDelay: '200ms' }}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-[11px] font-bold text-white uppercase tracking-wider">Gap Analysis: Brand vs Market Leader</h3>
+          <div className="flex items-center gap-2 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg shrink-0">
+            <Info size={10} className="text-amber-500" />
+            <span className="text-[8px] text-amber-500 font-bold uppercase tracking-widest">Focus Area: Citations</span>
+          </div>
+        </div>
+        <div className="overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/5 text-[8px] text-slate-500 font-bold uppercase">
+                <th className="py-2 tracking-widest">Metric</th>
+                <th className="py-2 tracking-widest">Brand</th>
+                <th className="py-2 tracking-widest">Leader</th>
+                <th className="py-2 tracking-widest">Other</th>
+                <th className="py-2 text-right tracking-widest">Gap</th>
+              </tr>
+            </thead>
+            <tbody className="text-[10px] text-slate-300">
+              {[
+                { m: 'Share of Voice', b: '6.1%', l: '41.2%', o: '28.5%', g: '-35.1%' },
+                { m: 'Avg List Rank', b: '#6.2', l: '#1.2', o: '#2.1', g: '-5.0 Positions' },
+                { m: 'Sentiment Score', b: '65', l: '78', o: '72', g: '-13 Points' },
+                { m: 'Citations', b: '58', l: '450', o: '310', g: '-392 Sites' },
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-white/2 hover:bg-white/2 transition-colors">
+                  <td className="py-2.5 font-bold text-slate-400 uppercase tracking-tighter truncate">{row.m}</td>
+                  <td className="py-2.5 font-bold text-brand-indigo">{row.b}</td>
+                  <td className="py-2.5 font-medium">{row.l}</td>
+                  <td className="py-2.5 font-medium">{row.o}</td>
+                  <td className="py-2.5 font-bold text-rose-500 text-right">{row.g}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="relative w-full glass-panel rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#0B0F19] flex min-h-[540px] animate-fade-in-up">
+      <div className="w-48 border-r border-white/5 bg-[#0D121F] p-4 hidden md:flex flex-col">
+        <div className="flex-1 flex flex-col gap-1">
+          {sidebarItems.map((item, i) => (
+            <div 
+              key={i} 
+              onClick={() => setActiveTab(item.label)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${
+                activeTab === item.label ? 'bg-brand-indigo/20 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 cursor-pointer'
+              }`}
+            >
+              <item.icon size={16} className="shrink-0" />
+              <span className="text-[11px] font-bold tracking-tight uppercase tracking-widest truncate">{item.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 px-3 py-2.5 bg-white/2 rounded-xl mb-3 border border-white/5 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-brand-indigo flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-lg border border-white/10">AD</div>
+            <div className="flex flex-col min-w-0">
+               <span className="text-[10px] text-white font-bold truncate">Admin User</span>
+               <span className="text-[8px] text-slate-500 truncate uppercase font-bold tracking-tighter">Enterprise</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-200 cursor-pointer rounded-lg transition-colors group overflow-hidden">
+            <Settings size={14} className="group-hover:rotate-45 transition-transform shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-widest truncate">Settings</span>
+          </div>
+          <div className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-rose-400 cursor-pointer rounded-lg transition-colors overflow-hidden">
+            <LogOut size={14} className="shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-widest truncate">Log Out</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 bg-[#0F1524] p-6 lg:p-8 overflow-hidden flex flex-col">
+        {activeTab === 'Dashboard' || activeTab === 'Content Gen' ? renderDashboard() : renderCompetitors()}
+      </div>
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite linear;
+        }
+      `}</style>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
+  const [isVerified, setIsVerified] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,7 +688,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Testimonial Slider Logic
   const nextTestimonial = useCallback(() => {
     setActiveTestimonial((prev) => (prev + 1) % TESTIMONIALS.length);
   }, []);
@@ -89,18 +711,40 @@ const App: React.FC = () => {
     }
   };
 
+  const handleBookStrategyCall = () => {
+    window.open(CALENDAR_URL, '_blank');
+  };
+
+  const openAuditModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsAuditModalOpen(true);
+  };
+
+  if (!isVerified) {
+    return <VerificationGateway onVerified={() => setIsVerified(true)} />;
+  }
+
   return (
-    <div className="min-h-screen bg-brand-dark text-slate-300 font-sans selection:bg-brand-cyan/30 selection:text-white relative">
-      {/* Background Elements */}
+    <div className="min-h-screen bg-brand-dark text-slate-300 font-sans selection:bg-brand-cyan/30 selection:text-white relative animate-fade-in">
+      <style>{`
+        @keyframes dash {
+          to { stroke-dashoffset: 0; }
+        }
+        .animate-dash {
+          animation: dash 2.5s ease-out forwards;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 1s ease-out forwards;
+        }
+      `}</style>
       <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none z-0" />
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-hero-glow pointer-events-none z-0" />
-      
-      {/* Additional Bright Background Accents (Shades of White) */}
       <div className="fixed top-10 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-white/5 blur-[120px] rounded-full pointer-events-none z-0 mix-blend-soft-light" />
       <div className="fixed -top-24 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-screen" />
-      <div className="fixed top-1/2 left-0 w-[400px] h-[400px] bg-brand-cyan/5 rounded-full blur-[100px] pointer-events-none z-0" />
-
-      {/* Navigation */}
       <nav 
         className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
           isScrolled 
@@ -110,8 +754,6 @@ const App: React.FC = () => {
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Logo />
-          
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map(link => (
               <a 
@@ -123,12 +765,10 @@ const App: React.FC = () => {
                 {link.label}
               </a>
             ))}
-            <Button variant="primary" size="sm" onClick={(e) => scrollToSection(e, '#audit')}>
+            <Button variant="primary" size="sm" onClick={openAuditModal}>
               Get Started
             </Button>
           </div>
-
-          {/* Mobile Menu Toggle */}
           <button 
             className="md:hidden text-white"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -136,8 +776,6 @@ const App: React.FC = () => {
             {isMobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
-
-        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="absolute top-full left-0 w-full bg-brand-dark border-b border-white/10 p-6 flex flex-col gap-4 md:hidden">
             {NAV_LINKS.map(link => (
@@ -150,344 +788,139 @@ const App: React.FC = () => {
                 {link.label}
               </a>
             ))}
-            <Button variant="primary" className="w-full" onClick={(e) => scrollToSection(e, '#audit')}>Get Started</Button>
+            <Button variant="primary" className="w-full" onClick={openAuditModal}>Get Started</Button>
           </div>
         )}
       </nav>
-
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 z-10">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-brand-cyan text-sm font-medium backdrop-blur-sm shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+      <section className="relative pt-24 pb-20 lg:pt-32 lg:pb-32 px-6 z-10">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          <div className="lg:col-span-5 space-y-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-brand-cyan text-[11px] font-bold uppercase tracking-wider backdrop-blur-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-cyan opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-cyan"></span>
               </span>
               The New Standard for GEO
             </div>
-            
             <h1 className="text-5xl lg:text-7xl font-display font-bold text-white leading-tight">
               See How AI Search <br />
               <span className="text-gradient drop-shadow-[0_0_25px_rgba(34,211,238,0.2)]">Talks About You.</span>
             </h1>
-            
-            <p className="text-xl text-slate-400 max-w-lg leading-relaxed">
-              Your Brand reveals your visibility across ChatGPT, Gemini, Perplexity, and Copilot—and gives you clear actions to dominate generated answers.
+            <p className="text-lg text-slate-400 leading-relaxed max-w-lg">
+              Unlock visibility across ChatGPT, Gemini, and Perplexity—and get precise strategies to dominate every generated answer.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Button 
                 variant="secondary" 
                 size="lg" 
-                icon={<ArrowRight size={18} />}
-                onClick={(e) => scrollToSection(e, '#audit')}
+                className="group shadow-[0_0_20px_rgba(34,211,238,0.3)] bg-brand-cyan border-none text-brand-dark rounded-xl"
+                icon={<ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />}
+                onClick={openAuditModal}
               >
-                Run AI Visibility Audit
+                Request a Free Audit
               </Button>
               <Button 
                 variant="outline" 
                 size="lg"
-                onClick={(e) => scrollToSection(e, '#solutions')}
+                className="border-slate-700 hover:border-slate-300 text-slate-300 rounded-xl"
+                onClick={handleBookStrategyCall}
               >
-                View Sample Reports
+                Book a Strategy Call
               </Button>
             </div>
-
             <div className="pt-8 border-t border-white/10">
-              <p className="text-sm text-slate-500 mb-4">Trusted by marketers at</p>
-              <div className="flex flex-wrap gap-6 text-slate-400 font-display font-bold text-lg opacity-60">
+              <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mb-4">Trusted by Market Leaders</p>
+              <div className="flex flex-wrap gap-8 items-center text-slate-400 font-display font-bold text-lg opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
                 {TRUSTED_BRANDS.map(brand => (
-                  <span key={brand} className="hover:text-white transition-colors cursor-default">{brand}</span>
+                  <span key={brand} className="hover:text-white cursor-default transition-colors">{brand}</span>
                 ))}
               </div>
             </div>
           </div>
-
-          {/* Hero Visual - Abstract Dashboard */}
-          <div className="lg:col-span-6 relative">
-            <div className="relative glass-panel rounded-2xl p-6 shadow-2xl border-t border-l border-white/20 animate-fade-in-up bg-brand-surface/60">
-              {/* Fake Dashboard Header */}
-              <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-3 w-3 rounded-full bg-red-500" />
-                  <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                  <div className="h-3 w-3 rounded-full bg-green-500" />
-                </div>
-                <div className="px-3 py-1 rounded bg-black/20 text-xs font-mono text-brand-cyan border border-brand-cyan/20">
-                  STATUS: OPTIMIZED
-                </div>
-              </div>
-
-              {/* Fake Metrics Row */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-brand-dark/40 p-4 rounded-lg border border-white/5">
-                  <div className="text-slate-400 text-xs mb-1">Total Mentions</div>
-                  <div className="text-2xl font-display font-bold text-white">14,205</div>
-                  <div className="text-emerald-400 text-xs mt-1 flex items-center gap-1">
-                    <TrendingUp size={12} /> +12.5%
-                  </div>
-                </div>
-                <div className="bg-brand-dark/40 p-4 rounded-lg border border-white/5">
-                  <div className="text-slate-400 text-xs mb-1">Sentiment Score</div>
-                  <div className="text-2xl font-display font-bold text-white">92.4</div>
-                  <div className="text-brand-cyan text-xs mt-1 flex items-center gap-1">
-                    <CheckCircle size={12} /> Excellent
-                  </div>
-                </div>
-              </div>
-
-              {/* Fake Conversation/Code Stream */}
-              <div className="space-y-3 font-mono text-sm bg-black/30 p-4 rounded-lg border border-white/5">
-                <div className="flex gap-2">
-                  <span className="text-blue-400">user:</span>
-                  <span className="text-slate-300">Compare top CRM tools for enterprise.</span>
-                </div>
-                <div className="h-px bg-white/5 my-2" />
-                <div className="flex gap-2">
-                  <span className="text-purple-400">ai:</span>
-                  <span className="text-slate-300">
-                    Based on recent data, <span className="text-white bg-brand-indigo/60 px-1 rounded shadow-[0_0_10px_rgba(79,70,229,0.3)]">Forzeo</span> is a leading choice due to robust security. Key competitors include...
-                  </span>
-                </div>
-              </div>
-
-              {/* Floating Badge - Positioned Bottom Right to Avoid Text Overlap */}
-              <div className="absolute -bottom-6 -right-6 glass-panel px-6 py-4 rounded-xl flex items-center gap-3 shadow-xl animate-bounce-slow bg-brand-surface/90 border border-white/10">
-                <div className="p-2 bg-green-500/20 rounded-lg text-green-400">
-                  <CheckCircle size={24} />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-400">Optimization Score</div>
-                  <div className="text-lg font-bold text-white">98/100</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Background Glow behind dashboard */}
-            <div className="absolute -inset-10 bg-brand-indigo/20 blur-3xl rounded-full -z-10 mix-blend-screen" />
+          <div className="lg:col-span-7 relative">
+            <DashboardMockup />
+            <div className="absolute -inset-10 bg-brand-indigo/20 blur-[120px] rounded-full -z-10 mix-blend-screen" />
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-brand-cyan/20 blur-[60px] rounded-full -z-10" />
           </div>
         </div>
       </section>
-
-      {/* Problem Section - Split Screen */}
       <Section darker id="problem">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
-            SEO Alone Isn't Enough.
-          </h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">
-            Traditional search is declining. AI assistants now answer queries directly, often without sending users to your website. If you aren't in the training data, you don't exist.
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">SEO Alone Is Dead.</h2>
+          <p className="text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed">
+            AI assistants answer queries directly, capturing intent without a single click to your site. If you aren't in the training data or citation pool, you're invisible.
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Old Way */}
-          <div className="p-8 rounded-2xl bg-white/5 border border-white/5 relative overflow-hidden group hover:border-red-500/30 transition-colors">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Search size={100} />
-            </div>
-            <h3 className="text-xl font-bold text-slate-300 mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-500" />
+          <div className="p-8 rounded-2xl bg-white/5 border border-white/5 relative overflow-hidden group hover:border-red-500/30 transition-all">
+            <h3 className="text-xl font-bold text-slate-300 mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_red]" />
               Traditional SEO
             </h3>
             <ul className="space-y-4 text-slate-400">
-              <li className="flex items-start gap-3">
-                <X className="text-red-500 shrink-0 mt-1" size={16} />
-                <span>Optimizes for 10 blue links</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <X className="text-red-500 shrink-0 mt-1" size={16} />
-                <span>Relies on keywords & backlinks</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <X className="text-red-500 shrink-0 mt-1" size={16} />
-                <span>Losing traffic to zero-click searches</span>
-              </li>
+              {[ 'Optimizes for 10 blue links', 'Relies on static keywords', 'Losing traffic to zero-click' ].map(item => (
+                <li key={item} className="flex items-start gap-3">
+                  <X className="text-red-500/60 shrink-0 mt-1" size={16} />
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
-
-          {/* New Way */}
           <div className="p-8 rounded-2xl bg-gradient-to-br from-brand-indigo/20 to-brand-cyan/10 border border-brand-cyan/20 relative overflow-hidden group">
-             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Cpu size={100} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-brand-cyan shadow-[0_0_10px_#22d3ee]" />
               Generative Optimization (GEO)
             </h3>
             <ul className="space-y-4 text-slate-300">
-              <li className="flex items-start gap-3">
-                <CheckCircle className="text-brand-cyan shrink-0 mt-1" size={16} />
-                <span>Optimizes for AI Answers & Chat</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="text-brand-cyan shrink-0 mt-1" size={16} />
-                <span>Focuses on entities & authority</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="text-brand-cyan shrink-0 mt-1" size={16} />
-                <span>Captures intent before the click</span>
-              </li>
+              {[ 'Optimizes for AI Chat & LLMs', 'Focuses on Entity Authority', 'Dominates AI recommended sets' ].map(item => (
+                <li key={item} className="flex items-start gap-3">
+                  <CheckCircle className="text-brand-cyan shrink-0 mt-1" size={16} />
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
       </Section>
-
-      {/* Features Grid */}
       <Section id="features">
         <div className="mb-16">
           <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
-            The Fastest Way to Improve <br/>
-            Your <span className="text-gradient">AI Visibility.</span>
+            Everything you need <br/>
+            to own the <span className="text-gradient">AI Response.</span>
           </h2>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {CORE_FEATURES.map((feature, idx) => (
             <div 
               key={idx} 
               className="p-6 rounded-xl bg-brand-surface border border-white/5 hover:border-brand-indigo/50 transition-all duration-300 hover:-translate-y-1 group"
             >
-              <div className="w-12 h-12 rounded-lg bg-brand-indigo/10 flex items-center justify-center text-brand-indigo mb-6 group-hover:bg-brand-indigo group-hover:text-white transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-brand-indigo/10 flex items-center justify-center text-brand-indigo mb-6 group-hover:bg-brand-indigo group-hover:text-white transition-colors shadow-inner">
                 <feature.icon size={24} />
               </div>
-              <h3 className="text-lg font-bold text-white mb-3">{feature.title}</h3>
+              <h3 className="text-lg font-bold text-white mb-3 tracking-tight">{feature.title}</h3>
               <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
       </Section>
-
-      {/* Deep Dive 1: Competitor Intel */}
-      <Section darker className="border-t border-white/5">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div className="order-2 lg:order-1 relative">
-            {/* Abstract Graphic */}
-            <div className="relative z-10 grid gap-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-brand-surface border border-white/10 p-4 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-white/10" />
-                    <div className="w-24 h-2 bg-white/10 rounded" />
-                  </div>
-                  <div className={`text-sm font-mono ${i === 1 ? 'text-green-400' : 'text-slate-500'}`}>
-                    {i === 1 ? '+14% Share' : '-2% Share'}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="absolute inset-0 bg-brand-cyan/20 blur-3xl -z-0 transform translate-x-10 translate-y-10" />
-          </div>
-          <div className="order-1 lg:order-2">
-            <div className="text-brand-cyan font-mono text-sm mb-4">COMPETITOR INTELLIGENCE</div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-6">
-              See Exactly Where Competitors Are Winning.
-            </h2>
-            <p className="text-slate-400 mb-8 text-lg">
-              Don't guess why they are recommended. Forzeo analyzes competitor mentions, identifies the authority sites feeding the AI, and highlights content gaps you need to fill.
-            </p>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-center gap-3 text-slate-300">
-                <Target size={18} className="text-brand-indigo" />
-                Identify authority sources citation flow
-              </li>
-              <li className="flex items-center gap-3 text-slate-300">
-                <Target size={18} className="text-brand-indigo" />
-                Spot missing semantic angles
-              </li>
-              <li className="flex items-center gap-3 text-slate-300">
-                <Target size={18} className="text-brand-indigo" />
-                Benchmark share of voice
-              </li>
-            </ul>
-          </div>
-        </div>
-      </Section>
-
-      {/* Deep Dive 2: Content Optimization */}
-      <Section>
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="text-brand-indigo font-mono text-sm mb-4">CONTENT OPTIMIZATION</div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-6">
-              Turn AI Insights Into High-Performing Content.
-            </h2>
-            <p className="text-slate-400 mb-8 text-lg">
-              We don't just tell you the problem; we fix it. Our Action Engine generates specific schema updates, paragraph rewrites, and entity definitions to align with LLM preferences.
-            </p>
-            <Button variant="outline" icon={<ChevronRight size={16} />}>
-              Explore Optimization Tools
-            </Button>
-          </div>
-          <div className="relative">
-            <div className="bg-brand-dark border border-white/10 rounded-xl p-6 relative z-10">
-              <div className="flex items-center gap-2 mb-4 border-b border-white/5 pb-4">
-                <AlertTriangle className="text-yellow-500" size={20} />
-                <span className="text-white font-medium">Missing Entity Connection</span>
-              </div>
-              <p className="text-slate-400 text-sm mb-4">
-                Your pricing page lacks clear connection to "Enterprise Security" entities, causing generic output in ChatGPT queries for "secure enterprise tools".
-              </p>
-              <div className="bg-brand-indigo/10 border border-brand-indigo/20 p-3 rounded text-sm text-brand-cyan">
-                Suggestion: Add structured data for ISO 27001 compliance...
-              </div>
-            </div>
-            <div className="absolute -inset-4 bg-brand-indigo/20 blur-2xl -z-0" />
-          </div>
-        </div>
-      </Section>
-
-      {/* Social Proof with Testimonial Slider */}
-      <Section darker className="text-center">
-        <div className="grid md:grid-cols-3 gap-8 mb-24">
-          {STATISTICS.map((stat, idx) => (
-            <div key={idx} className="p-6 border-r border-white/5 last:border-0">
-              <div className="text-4xl md:text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 mb-2">
-                {stat.value}
-              </div>
-              <div className="text-slate-400 font-medium">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-        
+      <Section darker className="text-center overflow-hidden">
         <div className="relative max-w-5xl mx-auto px-12">
-          {/* Navigation Arrows */}
-          <button 
-            onClick={prevTestimonial}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-white/10 bg-brand-surface/50 hover:bg-brand-indigo hover:border-brand-indigo transition-all duration-300 group shadow-lg"
-          >
+          <button onClick={prevTestimonial} className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-white/10 bg-brand-surface/50 hover:bg-brand-indigo hover:border-brand-indigo transition-all group shadow-lg">
             <ChevronLeft size={24} className="text-slate-400 group-hover:text-white" />
           </button>
-          
-          <button 
-            onClick={nextTestimonial}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-white/10 bg-brand-surface/50 hover:bg-brand-indigo hover:border-brand-indigo transition-all duration-300 group shadow-lg"
-          >
+          <button onClick={nextTestimonial} className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-white/10 bg-brand-surface/50 hover:bg-brand-indigo hover:border-brand-indigo transition-all group shadow-lg">
             <ChevronRight size={24} className="text-slate-400 group-hover:text-white" />
           </button>
-
           <div className="bg-gradient-to-r from-brand-indigo/10 to-transparent p-1 rounded-3xl">
             <div className="bg-brand-surface p-12 lg:p-16 rounded-3xl relative overflow-hidden glass-panel">
-              {/* Background Decoration */}
               <div className="absolute top-10 right-10 opacity-5 pointer-events-none">
                 <Quote size={200} className="text-white" />
               </div>
-              
-              <div className="relative z-10 transition-all duration-500 ease-in-out">
+              <div className="relative z-10">
                 {TESTIMONIALS.map((t, idx) => (
-                  <div 
-                    key={idx}
-                    className={`transition-all duration-700 absolute inset-0 flex flex-col items-center justify-center ${
-                      idx === activeTestimonial 
-                        ? 'opacity-100 translate-y-0 relative' 
-                        : 'opacity-0 translate-y-8 absolute pointer-events-none'
-                    }`}
-                  >
-                    <p className="text-2xl md:text-3xl text-slate-200 font-light italic leading-relaxed mb-10 max-w-3xl">
-                      "{t.quote}"
-                    </p>
-                    
+                  <div key={idx} className={`transition-all duration-700 absolute inset-0 flex flex-col items-center justify-center ${idx === activeTestimonial ? 'opacity-100 translate-y-0 relative' : 'opacity-0 translate-y-8 absolute pointer-events-none'}`}>
+                    <p className="text-2xl md:text-3xl text-slate-200 font-light italic leading-relaxed mb-10 max-w-3xl">"{t.quote}"</p>
                     <div className="flex flex-col items-center gap-4">
                       <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${t.color} p-0.5 shadow-lg`}>
                         <div className="w-full h-full rounded-full bg-brand-dark flex items-center justify-center overflow-hidden">
@@ -504,224 +937,25 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Pagination Dots */}
           <div className="flex justify-center gap-3 mt-8">
             {TESTIMONIALS.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveTestimonial(idx)}
-                className={`h-1.5 transition-all duration-300 rounded-full ${
-                  idx === activeTestimonial ? 'w-8 bg-brand-cyan' : 'w-2 bg-white/20'
-                }`}
-              />
+              <button key={idx} onClick={() => setActiveTestimonial(idx)} className={`h-1.5 transition-all duration-300 rounded-full ${idx === activeTestimonial ? 'w-8 bg-brand-cyan' : 'w-2 bg-white/20'}`} />
             ))}
           </div>
         </div>
       </Section>
-
-      {/* Sample Reports */}
-      <Section id="solutions">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-display font-bold text-white">Actionable Intelligence</h2>
-          <p className="text-slate-400 mt-4 max-w-2xl mx-auto">
-            Comprehensive dashboards that translate complex AI behavior into clear growth strategies.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          
-          {/* Card 1: AI Visibility Snapshot */}
-          <div className="group relative rounded-xl overflow-hidden bg-brand-surface border border-white/10 hover:border-brand-cyan/30 transition-all duration-300 shadow-lg flex flex-col">
-            <div className="p-6 flex-1 flex flex-col relative z-10 bg-gradient-to-b from-brand-surface to-brand-dark">
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-2">
-                  <Activity size={16} className="text-brand-cyan" />
-                  <h4 className="text-slate-300 font-medium text-sm tracking-wide uppercase">Visibility Index</h4>
-                </div>
-                <div className="flex items-center text-emerald-400 text-xs font-mono bg-emerald-400/10 px-2 py-0.5 rounded">
-                  <TrendingUp size={10} className="mr-1" /> +24%
-                </div>
-              </div>
-              
-              {/* Mockup Chart */}
-              <div className="flex-1 min-h-[140px] relative">
-                 {/* Chart Grid Lines */}
-                 <div className="absolute inset-0 flex flex-col justify-between opacity-10">
-                    <div className="w-full h-px bg-white"></div>
-                    <div className="w-full h-px bg-white"></div>
-                    <div className="w-full h-px bg-white"></div>
-                    <div className="w-full h-px bg-white"></div>
-                 </div>
-                 
-                 {/* CSS SVG Chart */}
-                 <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="gradientChart" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#22D3EE" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <path d="M0,100 C20,90 40,95 60,60 C80,30 100,40 120,20 C140,10 160,25 200,5 L200,140 L0,140 Z" fill="url(#gradientChart)" />
-                    <path d="M0,100 C20,90 40,95 60,60 C80,30 100,40 120,20 C140,10 160,25 200,5" fill="none" stroke="#22D3EE" strokeWidth="3" vectorEffect="non-scaling-stroke" />
-                 </svg>
-
-                 {/* Floating Points */}
-                 <div className="absolute top-[5px] right-0 w-3 h-3 bg-brand-cyan rounded-full shadow-[0_0_10px_#22D3EE] border-2 border-brand-surface"></div>
-              </div>
-
-              <div className="flex justify-between text-[10px] text-slate-500 mt-4 font-mono uppercase">
-                <span>Week 1</span>
-                <span>Week 2</span>
-                <span>Week 3</span>
-                <span>Week 4</span>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-brand-dark/50 border-t border-white/5">
-               <h3 className="text-white font-bold text-lg mb-1">AI Visibility Snapshot</h3>
-               <p className="text-slate-400 text-xs">Track your ranking trajectory across models.</p>
-            </div>
-          </div>
-
-          {/* Card 2: Competitor Scorecard */}
-          <div className="group relative rounded-xl overflow-hidden bg-brand-surface border border-white/10 hover:border-brand-indigo/40 transition-all duration-300 shadow-lg flex flex-col">
-             <div className="p-6 flex-1 flex flex-col relative z-10 bg-gradient-to-b from-brand-surface to-brand-dark">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2">
-                    <Target size={16} className="text-brand-indigo" />
-                    <h4 className="text-slate-300 font-medium text-sm tracking-wide uppercase">Share of Voice</h4>
-                  </div>
-                </div>
-
-                {/* Mockup Bars */}
-                <div className="space-y-4 flex-1">
-                   {/* Brand Bar */}
-                   <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-white font-bold">Forzeo</span>
-                        <span className="text-brand-cyan">68%</span>
-                      </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full w-[68%] bg-brand-cyan shadow-[0_0_10px_rgba(34,211,238,0.5)] rounded-full"></div>
-                      </div>
-                   </div>
-                   {/* Comp 1 */}
-                   <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-400">Competitor A</span>
-                        <span className="text-slate-500">42%</span>
-                      </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full w-[42%] bg-slate-600 rounded-full"></div>
-                      </div>
-                   </div>
-                   {/* Comp 2 */}
-                   <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-400">Competitor B</span>
-                        <span className="text-slate-500">21%</span>
-                      </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full w-[21%] bg-slate-700 rounded-full"></div>
-                      </div>
-                   </div>
-                </div>
-             </div>
-             
-             <div className="p-4 bg-brand-dark/50 border-t border-white/5">
-               <h3 className="text-white font-bold text-lg mb-1">Competitor Scorecard</h3>
-               <p className="text-slate-400 text-xs">Benchmark your presence against rivals.</p>
-            </div>
-          </div>
-
-          {/* Card 3: Mention Breakdown */}
-          <div className="group relative rounded-xl overflow-hidden bg-brand-surface border border-white/10 hover:border-brand-indigo/40 transition-all duration-300 shadow-lg flex flex-col">
-             <div className="p-6 flex-1 flex flex-col relative z-10 bg-gradient-to-b from-brand-surface to-brand-dark">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2">
-                    <PieChart size={16} className="text-purple-400" />
-                    <h4 className="text-slate-300 font-medium text-sm tracking-wide uppercase">Mention Types</h4>
-                  </div>
-                </div>
-
-                {/* Mockup Content */}
-                <div className="flex items-center gap-4 flex-1">
-                   {/* CSS Donut */}
-                   <div className="relative w-20 h-20 shrink-0">
-                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                        <path className="text-slate-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                        <path className="text-brand-indigo" strokeDasharray="60, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                        <path className="text-purple-500" strokeDasharray="25, 100" strokeDashoffset="-60" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
-                        Total
-                      </div>
-                   </div>
-
-                   {/* Legend */}
-                   <div className="space-y-2 text-xs flex-1">
-                      <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-brand-indigo"></span>
-                            <span className="text-slate-300">Citations</span>
-                         </div>
-                         <span className="text-white font-mono">60%</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                            <span className="text-slate-300">Direct Recs</span>
-                         </div>
-                         <span className="text-white font-mono">25%</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-slate-600"></span>
-                            <span className="text-slate-400">Neutral</span>
-                         </div>
-                         <span className="text-slate-500 font-mono">15%</span>
-                      </div>
-                   </div>
-                </div>
-             </div>
-             
-             <div className="p-4 bg-brand-dark/50 border-t border-white/5">
-               <h3 className="text-white font-bold text-lg mb-1">Mention Breakdown</h3>
-               <p className="text-slate-400 text-xs">Analyze sentiment & context sources.</p>
-            </div>
-          </div>
-
-        </div>
-      </Section>
-
-      {/* Pricing */}
       <Section id="pricing" darker>
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
-            Simple, Transparent Pricing.
-          </h2>
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">Simple, Scalable Pricing.</h2>
           <p className="text-slate-400">Start auditing your visibility today.</p>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {PRICING_TIERS.map((tier, idx) => (
-            <div 
-              key={idx} 
-              className={`p-6 rounded-2xl border flex flex-col ${
-                tier.recommended 
-                  ? 'bg-brand-surface border-brand-indigo/50 shadow-[0_0_30px_rgba(79,70,229,0.15)] relative' 
-                  : 'bg-brand-surface/30 border-white/5'
-              }`}
-            >
-              {tier.recommended && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-indigo text-white text-xs font-bold rounded-full uppercase tracking-wider">
-                  Most Popular
-                </div>
-              )}
+            <div key={idx} className={`p-6 rounded-2xl border flex flex-col transition-all duration-300 hover:scale-[1.02] ${tier.recommended ? 'bg-[#121827] border-brand-indigo shadow-[0_0_30px_rgba(79,70,229,0.2)] relative' : 'bg-brand-surface/30 border-white/5'}`}>
+              {tier.recommended && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-indigo text-white text-[10px] font-bold rounded-full uppercase tracking-widest">Most Popular</div>}
               <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
               <div className="text-3xl font-display font-bold text-white mb-4">{tier.price}<span className="text-sm text-slate-500 font-sans font-normal">/mo</span></div>
               <p className="text-slate-400 text-sm mb-6 h-10">{tier.description}</p>
-              
               <ul className="space-y-3 mb-8 flex-1">
                 {tier.features.map((feat, fIdx) => (
                   <li key={fIdx} className="flex items-start gap-2 text-sm text-slate-300">
@@ -730,80 +964,74 @@ const App: React.FC = () => {
                   </li>
                 ))}
               </ul>
-              
-              <Button 
-                variant={tier.recommended ? 'primary' : 'outline'} 
-                className="w-full"
-                onClick={(e) => scrollToSection(e, '#audit')}
-              >
+              <Button variant={tier.recommended ? 'primary' : 'outline'} className="w-full" onClick={openAuditModal}>
                 {tier.price === 'Custom' ? 'Contact Sales' : 'Start Free Audit'}
               </Button>
             </div>
           ))}
         </div>
       </Section>
-
-      {/* Final CTA */}
       <section id="audit" className="relative py-24 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-brand-indigo/10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-dark via-transparent to-brand-dark" />
-        
+        <div className="absolute inset-0 bg-brand-indigo/10 blur-[120px] rounded-full opacity-50" />
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8">
             Your Customers Ask AI Every Day. <br/>
-            <span className="text-brand-cyan">Make Sure It Recommends You.</span>
+            <span className="text-brand-cyan shadow-sm">Make Sure It Recommends You.</span>
           </h2>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button variant="primary" size="lg" className="w-full sm:w-auto">
-              Run My Free AI Visibility Audit
+            <Button 
+              variant="primary" 
+              size="lg" 
+              className="w-full sm:w-auto shadow-2xl rounded-xl"
+              onClick={openAuditModal}
+            >
+              Request a Free AI Visibility Audit
             </Button>
-            <Button variant="ghost" size="lg" className="w-full sm:w-auto border border-white/10">
+            <Button 
+              variant="ghost" 
+              size="lg" 
+              className="w-full sm:w-auto border border-white/10 rounded-xl"
+              onClick={handleBookStrategyCall}
+            >
               Book a Strategy Call
             </Button>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
       <footer id="resources" className="border-t border-white/10 bg-brand-dark py-12 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1">
             <Logo className="mb-6" />
-            <p className="text-slate-500 text-sm">
-              The first comprehensive Generative Engine Optimization platform for modern brands.
-            </p>
+            <p className="text-slate-500 text-sm leading-relaxed">The first comprehensive Generative Engine Optimization platform for future-ready brands.</p>
           </div>
-          
           <div>
-            <h4 className="text-white font-bold mb-4">Platform</h4>
+            <h4 className="text-white font-bold mb-4 tracking-tight">Platform</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><a href="#features" onClick={(e) => scrollToSection(e, '#features')} className="hover:text-brand-cyan transition-colors">Features</a></li>
-              <li><a href="#solutions" onClick={(e) => scrollToSection(e, '#solutions')} className="hover:text-brand-cyan transition-colors">Solutions</a></li>
-              <li><a href="#pricing" onClick={(e) => scrollToSection(e, '#pricing')} className="hover:text-brand-cyan transition-colors">Pricing</a></li>
+              {['Features', 'Solutions', 'Pricing'].map(l => <li key={l}><a href={`#${l.toLowerCase()}`} onClick={(e) => scrollToSection(e, `#${l.toLowerCase()}`)} className="hover:text-brand-cyan transition-colors">{l}</a></li>)}
             </ul>
           </div>
-          
           <div>
-             <h4 className="text-white font-bold mb-4">Resources</h4>
+             <h4 className="text-white font-bold mb-4 tracking-tight">Resources</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-brand-cyan transition-colors">GEO Guide</a></li>
-              <li><a href="#" className="hover:text-brand-cyan transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-brand-cyan transition-colors">Case Studies</a></li>
+              {['GEO Guide', 'Case Studies', 'API Documentation'].map(l => <li key={l}><a href="#" className="hover:text-brand-cyan transition-colors">{l}</a></li>)}
             </ul>
           </div>
-
           <div>
-             <h4 className="text-white font-bold mb-4">Legal</h4>
+             <h4 className="text-white font-bold mb-4 tracking-tight">Legal</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><a href="#" className="hover:text-brand-cyan transition-colors">Privacy</a></li>
-              <li><a href="#" className="hover:text-brand-cyan transition-colors">Terms</a></li>
+              {['Privacy Policy', 'Terms of Service'].map(l => <li key={l}><a href="#" className="hover:text-brand-cyan transition-colors">{l}</a></li>)}
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 text-center text-slate-600 text-sm">
-          © {new Date().getFullYear()} Forzeo Inc. All rights reserved.
+        <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 text-center text-slate-600 text-[10px] font-medium tracking-wide">
+          © {new Date().getFullYear()} FORZEO INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
+      <LeadFormModal 
+        isOpen={isAuditModalOpen} 
+        onClose={() => setIsAuditModalOpen(false)} 
+      />
+      <WhatsAppButton />
     </div>
   );
 };
